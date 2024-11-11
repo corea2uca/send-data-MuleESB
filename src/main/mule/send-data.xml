@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f41b4fcc-e541-4d13-82d3-8ce2cad0c94b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="send-dataFlow" doc:id="d0882605-a269-4f79-a750-9d365e22497e" >
+		<http:listener doc:name="Listener" doc:id="026ba07a-2d5a-498f-a8d1-14bdaa5ac1ef" config-ref="HTTP_Listener_config" path="senddata"/>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="321c5349-0d01-4528-8433-c31be8cb7ce9" variableName="data"/>
+		<ee:transform doc:name="Transform Message" doc:id="bea09106-c870-47b9-af99-71b2875282b0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv header = false
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write to CSV" doc:id="3f983799-4843-40a7-8425-7f49974fa9ad" path="C:\AnypointStudio-7.19.0-win64\training\airports.csv" mode="APPEND"/>
+		<ee:transform doc:name="Transform Message" doc:id="c03fc447-ee8a-460c-933a-559e3c0ebaff" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+//vars.data
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write to JSON" doc:id="f00348a8-1398-4f13-8a42-60f235c3f983" path="C:\AnypointStudio-7.19.0-win64\training\airports.json" mode="APPEND"/>
+		<logger level="INFO" doc:name="Logger" doc:id="d1f72879-9d16-420e-84ec-4057548faef1" message="Logger - successfully"/>
+		<ee:transform doc:name="Transform Message" doc:id="30e253e9-b7da-4442-82cf-f79e07401f5f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": 'Data Successfully',
+	"code": 200
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
